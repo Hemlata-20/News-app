@@ -4,7 +4,7 @@ import Spinner from './Spinner';
 import PropTypes from 'prop-types';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
-const News = ({ country = 'us', pageSize = 6, category = 'general', apiKey, setProgress }) => {
+const News = ({ country = 'in', pageSize = 6, category = 'general', apiKey, setProgress }) => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -15,14 +15,14 @@ const News = ({ country = 'us', pageSize = 6, category = 'general', apiKey, setP
   const fetchNews = async () => {
     try {
       setProgress(10);
-      const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}&page=${page}&pageSize=${pageSize}`;
+      const url = `https://gnews.io/api/v4/top-headlines?lang=en&country=${country}&topic=${category}&token=${apiKey}&max=${pageSize}&page=${page}`;
       setLoading(true);
       const data = await fetch(url);
       setProgress(30);
       const parsedData = await data.json();
       setProgress(70);
       setArticles(parsedData.articles || []);
-      setTotalResults(parsedData.totalResults || 0);
+      setTotalResults(parsedData.totalArticles || 0);
       setLoading(false);
       setProgress(100);
     } catch (error) {
@@ -40,12 +40,12 @@ const News = ({ country = 'us', pageSize = 6, category = 'general', apiKey, setP
 
   const fetchMoreData = async () => {
     const nextPage = page + 1;
-    const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}&page=${nextPage}&pageSize=${pageSize}`;
+    const url = `https://gnews.io/api/v4/top-headlines?lang=en&country=${country}&topic=${category}&token=${apiKey}&max=${pageSize}&page=${nextPage}`;
     try {
       const data = await fetch(url);
       const parsedData = await data.json();
       setArticles((prevArticles) => prevArticles.concat(parsedData.articles || []));
-      setTotalResults(parsedData.totalResults || 0);
+      setTotalResults(parsedData.totalArticles || 0);
       setPage(nextPage);
     } catch (error) {
       console.error("Error fetching more data:", error);
@@ -71,14 +71,14 @@ const News = ({ country = 'us', pageSize = 6, category = 'general', apiKey, setP
             element && (
               <div className="col-md-4 mb-4" key={element.url || index}>
                 <NewsItem
-                  title={element.title ? element.title.slice(0, 45) : 'No Title'}
-                  description={element.description ? element.description.slice(0, 88) : 'No Description Available'}
-                  imageurl={element.urlToImage || 'https://via.placeholder.com/300x200?text=No+Image'}
+                  title={element.title || 'No Title'}
+                  description={element.description || 'No Description'}
+                  imageurl={element.image || 'https://via.placeholder.com/300x200?text=No+Image'}
                   newsurl={element.url}
-                  author={element.author}
+                  author={element.source?.name || 'Unknown'}
                   date={element.publishedAt}
                   category={category}
-                  source={element.source?.name || "Unknown"}
+                  source={element.source?.name || 'Unknown'}
                 />
               </div>
             )
